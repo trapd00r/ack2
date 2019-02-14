@@ -4,4 +4,4 @@
 
 - use Term::ExtendedColor for additional color options
 
-[ack](/extra/ack.png)
+![ack](/extra/ack.png)
