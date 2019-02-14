@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-our $VERSION = '2.24'; # Check https://beyondgrep.com/ for updates
+our $VERSION = '2.24.1-japh'; # Check https://beyondgrep.com/ for updates
 
 use 5.008008;
 use Getopt::Long 2.38 ();
@@ -10,6 +10,7 @@ use Carp 1.04 ();
 
 use File::Spec ();
 use File::Next ();
+use File::LsColor ();
 
 use App::Ack ();
 use App::Ack::ConfigLoader ();
@@ -428,7 +429,8 @@ sub print_matches_in_resource {
 
     my $display_filename = $filename;
     if ( $opt_show_filename && $opt_heading && $opt_color ) {
-        $display_filename = Term::ANSIColor::colored($display_filename, $ENV{ACK_COLOR_FILENAME});
+        $display_filename = File::LsColor::ls_color($display_filename);
+#        $display_filename = Term::ANSIColor::colored($display_filename, $ENV{ACK_COLOR_FILENAME});
     }
 
     # Check for context before the main loop, so we don't pay for it if we don't need it.
