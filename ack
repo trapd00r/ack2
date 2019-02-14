@@ -11,6 +11,7 @@ use Carp 1.04 ();
 use File::Spec ();
 use File::Next ();
 use File::LsColor ();
+use Term::ExtendedColor qw(fg bg bold italic);
 
 use App::Ack ();
 use App::Ack::ConfigLoader ();
@@ -249,14 +250,14 @@ sub show_types {
     return;
 }
 
-# Set default colors, load Term::ANSIColor
 sub load_colors {
-    eval 'use Term::ANSIColor 1.10 ()';
-    eval 'use Win32::Console::ANSI' if $App::Ack::is_windows;
+    eval 'use Term::ExtendedColor ()';
 
-    $ENV{ACK_COLOR_MATCH}    ||= 'black on_yellow';
+# foreground, background
+    $ENV{ACK_COLOR_MATCH}    ||= '197, 232';
+# handled by File::LsColor
     $ENV{ACK_COLOR_FILENAME} ||= 'bold green';
-    $ENV{ACK_COLOR_LINENO}   ||= 'bold yellow';
+    $ENV{ACK_COLOR_LINENO}   ||= '32';
 
     return;
 }
@@ -429,7 +430,7 @@ sub print_matches_in_resource {
 
     my $display_filename = $filename;
     if ( $opt_show_filename && $opt_heading && $opt_color ) {
-        $display_filename = File::LsColor::ls_color($display_filename);
+        $display_filename = italic(bold("> ")) . File::LsColor::ls_color($display_filename);
 #        $display_filename = Term::ANSIColor::colored($display_filename, $ENV{ACK_COLOR_FILENAME});
     }
 
@@ -558,6 +559,7 @@ sub print_matches_in_resource {
 
 sub print_line_with_options {
     my ( $filename, $line, $line_no, $separator ) = @_;
+    $separator = ' ';
 
     $has_printed_something = 1;
     $printed_line_no = $line_no;
@@ -567,10 +569,8 @@ sub print_line_with_options {
     my @line_parts;
 
     if( $opt_color ) {
-        $filename = Term::ANSIColor::colored($filename,
-            $ENV{ACK_COLOR_FILENAME});
-        $line_no  = Term::ANSIColor::colored($line_no,
-            $ENV{ACK_COLOR_LINENO});
+        $filename = File::LsColor::ls_color($filename);
+        $line_no  = fg($ENV{ACK_COLOR_LINENO}, $line_no);
     }
 
     if($opt_show_filename) {
@@ -612,8 +612,7 @@ sub print_line_with_options {
 
                         my $substring = substr( $line,
                             $offset + $match_start, $match_end - $match_start );
-                        my $substitution = Term::ANSIColor::colored( $substring,
-                            $ENV{ACK_COLOR_MATCH} );
+                        my $substitution = fg_on_bg($substring);
 
                         substr( $line, $offset + $match_start,
                             $match_end - $match_start, $substitution );
@@ -637,8 +636,7 @@ sub print_line_with_options {
 
                     my $substring = substr( $line, $match_start,
                         $match_end - $match_start );
-                    my $substitution = Term::ANSIColor::colored( $substring,
-                        $ENV{ACK_COLOR_MATCH} );
+                    my $substitution = fg_on_bg($substring);
 
                     substr( $line, $match_start, $match_end - $match_start,
                         $substitution );
@@ -1058,6 +1056,12 @@ RESOURCES:
 
     close $App::Ack::fh;
     App::Ack::exit_from_ack( $nmatches );
+}
+
+
+sub fg_on_bg {
+  my $data = shift;
+  return bg(53, fg(197, bold($data)));
 }
 
 =pod
